@@ -67,11 +67,11 @@
 
                     // 개별 방명록의 HTML 코드를 전체 목록 HTML 코드에 추가
                     html += `
-                    <div class="text-module2 module">
+                    <li>
                         <h3 class="guest-list-name">${data.data().name}</h3>
                         <p class="guest-list-content">${data.data().content}</p>
                         <h5 class="guest-list-created-at">작성일: ${myDate}</h5>
-                    </div>
+                    </li>
                     `;
                 });
 
