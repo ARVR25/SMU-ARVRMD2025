@@ -1,0 +1,116 @@
+<!doctype html><html><head><meta charset="utf-8"/><title>SMU-ARVRMD2025/방명록</title><meta name="viewport" content="width=device-width,initial-scale=1"/><link rel="stylesheet" href="../public/style.css"/></head><body><form><h3>이름<input id="guest-name"/></h3><h3>내용<input id="guest-content"/></h3><br><button type="button" id="guest-submit">작성</button></form><div id="guestbook-container"></div><script type="module">import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+            import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
+            import {
+                getFirestore,
+                collection,
+                getDocs,
+                addDoc,
+            } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+            const firebaseConfig = {
+                apiKey: "AIzaSyAQXfk5GDFCa0PdarLHDYll0rrEB5f1ZF8",
+                authDomain: "smu-arvrmd2025.firebaseapp.com",
+                projectId: "smu-arvrmd2025",
+                storageBucket: "smu-arvrmd2025.firebasestorage.app",
+                messagingSenderId: "591519928169",
+                appId: "1:591519928169:web:5df88ed958531098b9b7f8",
+                measurementId: "G-E83GY0L0WQ"
+            };
+
+            const app = initializeApp(firebaseConfig);
+            const analytics = getAnalytics(app);
+
+            const db = getFirestore(app);
+            const guestRef = collection(db, "guests");
+
+            // 방명록 목록 갱신 타이머를 위한 변수
+            let refreshTimer = null;
+            
+            async function sendGuest() {
+                const name = document.querySelector("#guest-name").value;
+                const content = document.querySelector("#guest-content").value;
+
+                if (!name || !content) {
+                    alert("이름과 내용을 모두 입력해주세요.");
+                    return;
+                }
+
+                await addDoc(guestRef, {
+                    name: name,
+                    content: content,
+                    created_at: new Date(),
+                });
+                
+                document.querySelector("#guest-name").value = "";
+                document.querySelector("#guest-content").value = "";
+            }
+
+            document.querySelector("#guest-submit").addEventListener("click", async () => {
+                await sendGuest();
+                // 새로운 방명록이 작성되면 즉시 목록을 새로고침
+                showRandomGuests();
+            });
+            
+            showRandomGuests();
+
+            async function showRandomGuests() {
+                // 이전 타이머가 있다면 초기화
+                if (refreshTimer) {
+                    clearTimeout(refreshTimer);
+                }
+
+                const container = document.querySelector("#guestbook-container");
+                container.innerHTML = '';
+
+                const allGuests = await getDocs(guestRef);
+                const guestList = allGuests.docs;
+                
+                if (guestList.length === 0) {
+                    // 방명록이 없을 경우, 10초 후에 다시 시도
+                    console.log("No guests found. Retrying in 10 seconds.");
+                    refreshTimer = setTimeout(() => {
+                        showRandomGuests();
+                    }, 10000);
+                    return;
+                }
+
+                for (let i = guestList.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [guestList[i], guestList[j]] = [guestList[j], guestList[i]];
+                }
+
+                const limitedGuests = guestList.slice(0, 3);
+                
+                let time = 0;
+                
+                limitedGuests.forEach((data) => {
+                    const date = new Date(data.data().created_at.toDate());
+                    const myDate = `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일 ${date.getHours()}:${date.getMinutes()}`;
+
+                    const guestItem = document.createElement("div");
+                    guestItem.classList.add("guestbook-item");
+                    
+                    guestItem.innerHTML = `
+                        <h3 class="guest-list-name">${data.data().name}</h3>
+                        <p class="guest-list-content">${data.data().content}</p>
+                        <h5 class="guest-list-created-at">작성일: ${myDate}</h5>
+                    `;
+
+                    guestItem.style.animationDelay = `${time}s`;
+                    time += 0.1;
+                    
+                    container.appendChild(guestItem);
+
+                    setTimeout(() => {
+                        guestItem.classList.add("fade-out");
+                        setTimeout(() => {
+                            guestItem.remove();
+                        }, 500); 
+                    }, 5000); // 10초(10000ms) 후에 사라지도록 설정
+                });
+
+                // 마지막 방명록이 사라진 후, 새로운 방명록 목록을 로드하도록 타이머 설정
+                refreshTimer = setTimeout(() => {
+                    showRandomGuests();
+                }, 5000 + 500 + (limitedGuests.length * 100)); // 10초 + fadeOut 시간 + 애니메이션 지연 시간
+            }</script></body></html>
