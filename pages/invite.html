@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"/><title>SMU-ARVRMD2025/방명록</title><meta name="viewport" content="width=device-width,initial-scale=1"/><link rel="stylesheet" href="../public/style.css"/></head><body><form><h3>이름<input id="guest-name"/></h3><h3>내용<input id="guest-content"/></h3><br><button type="button" id="guest-submit">작성</button></form><div id="guestbook-container"></div><script type="module">import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+<!doctype html><html><head><meta charset="utf-8"/><title>SMU-ARVRMD2025/방명록</title><meta name="viewport" content="width=device-width,initial-scale=1"/><link rel="stylesheet" href="../public/style.css"/></head><body><form><h3 class="title">이름<input id="guest-name"/></h3><h3 class="title">내용<input id="guest-content"/></h3><br><button type="button" id="guest-submit">작성</button></form><div id="guestbook-container"></div><script type="module">import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
             import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
             import {
                 getFirestore,
@@ -106,7 +106,7 @@
                         setTimeout(() => {
                             guestItem.remove();
                         }, 500); 
-                    }, 5000); // 10초(10000ms) 후에 사라지도록 설정
+                    }, 10000); // 10초(10000ms) 후에 사라지도록 설정
                 });
 
                 // 마지막 방명록이 사라진 후, 새로운 방명록 목록을 로드하도록 타이머 설정
