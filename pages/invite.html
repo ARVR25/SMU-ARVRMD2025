@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"/><title>SMU-ARVRMD2025/방명록</title><meta name="viewport" content="width=device-width,initial-scale=1"/><link rel="stylesheet" href="../styles/style.css"/></head><body><nav class="top-nav"><a class="title" href="../index.html">MOMENTUM</a><div id="nav-link"><a href="./about.html" class="nav-link">ABOUT</a> <a href="./project.html" class="nav-link">PROJECT</a> <a href="./designers.html" class="nav-link">DESIGNERS</a> <a href="./invite.html" class="nav-link">방명록</a></div></nav><form><h3>이름<input id="guest-name"/></h3><h3>내용<input id="guest-content"/></h3><br><button type="button" id="guest-submit">작성</button></form><div id="guestbook-container"></div><script type="module">import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+<!doctype html><html><head><meta charset="utf-8"/><title>SMU-ARVRMD2025/방명록</title><meta name="viewport" content="width=device-width,initial-scale=1"/><link rel="stylesheet" href="../styles/style.css"/><script defer="defer" src="../bundle.js"></script><link href="../styles/style.css" rel="stylesheet"></head><body><nav class="top-nav"><a class="title" href="../index.html">MOMENTUM</a><div id="nav-link"><div class="dropdown"><a class="nav-link2">ABOUT</a><div class="dropdown-content"><a href="./about.html">전시 개요</a> <a href="./about_poster.html">전시 비주얼</a></div></div><a href="./project.html" class="nav-link">PROJECT</a> <a href="./designers.html" class="nav-link">DESIGNERS</a> <a href="./invite.html" class="nav-link">방명록</a></div></nav><div class="main-content"><div class="input-form-container"><button type="button" id="guest-submit">작성</button><div class="input-group"><input id="guest-name"/></div><div class="input-group"><input id="guest-content"/></div><br></div></div><div id="guestbook-container"></div><script type="module">import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
             import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
             import {
                 getFirestore,
@@ -19,13 +19,9 @@
 
             const app = initializeApp(firebaseConfig);
             const analytics = getAnalytics(app);
-
             const db = getFirestore(app);
             const guestRef = collection(db, "guests");
 
-            // 방명록 목록 갱신 타이머를 위한 변수
-            let refreshTimer = null;
-            
             async function sendGuest() {
                 const name = document.querySelector("#guest-name").value;
                 const content = document.querySelector("#guest-content").value;
@@ -47,18 +43,14 @@
 
             document.querySelector("#guest-submit").addEventListener("click", async () => {
                 await sendGuest();
-                // 새로운 방명록이 작성되면 즉시 목록을 새로고침
                 showRandomGuests();
             });
             
-            showRandomGuests();
+            document.addEventListener("DOMContentLoaded", () => {
+                showRandomGuests();
+            });
 
             async function showRandomGuests() {
-                // 이전 타이머가 있다면 초기화
-                if (refreshTimer) {
-                    clearTimeout(refreshTimer);
-                }
-
                 const container = document.querySelector("#guestbook-container");
                 container.innerHTML = '';
 
@@ -66,20 +58,13 @@
                 const guestList = allGuests.docs;
                 
                 if (guestList.length === 0) {
-                    // 방명록이 없을 경우, 10초 후에 다시 시도
                     console.log("No guests found. Retrying in 10 seconds.");
-                    refreshTimer = setTimeout(() => {
-                        showRandomGuests();
-                    }, 10000);
+                    setTimeout(showRandomGuests, 10000);
                     return;
                 }
 
-                for (let i = guestList.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [guestList[i], guestList[j]] = [guestList[j], guestList[i]];
-                }
-
-                const limitedGuests = guestList.slice(0, 3);
+                const shuffledGuests = guestList.sort(() => 0.5 - Math.random());
+                const limitedGuests = shuffledGuests.slice(0, 4);
                 
                 let time = 0;
                 
@@ -97,20 +82,13 @@
                     `;
 
                     guestItem.style.animationDelay = `${time}s`;
-                    time += 0.1;
+                    time += 0.2;
                     
                     container.appendChild(guestItem);
-
-                    setTimeout(() => {
-                        guestItem.classList.add("fade-out");
-                        setTimeout(() => {
-                            guestItem.remove();
-                        }, 500); 
-                    }, 10000); // 10초(10000ms) 후에 사라지도록 설정
                 });
 
-                // 마지막 방명록이 사라진 후, 새로운 방명록 목록을 로드하도록 타이머 설정
-                refreshTimer = setTimeout(() => {
+                // 5초마다 갱신되도록 타이머 설정
+                setTimeout(() => {
                     showRandomGuests();
-                }, 5000 + 500 + (limitedGuests.length * 100)); // 10초 + fadeOut 시간 + 애니메이션 지연 시간
+                }, 10000);
             }</script></body></html>
